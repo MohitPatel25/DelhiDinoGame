@@ -1,0 +1,219 @@
+<!DOCTYPE html> 
+<html>
+<head>
+    <title>Delhi Dino Run</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            background: url('./images/DelhiBG.jpeg') repeat-x;
+            background-size: auto 100%;
+        }
+        #gameOver, #pauseScreen {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 25px;
+            text-align: center;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.3);
+        }
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 15px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        #scoreBoard {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div id="scoreBoard">
+        Score: <span id="currentScore">0</span><br>
+        High Score: <span id="highScore">0</span>
+    </div>
+    <div id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>High Score: <span id="finalHighScore">0</span></p>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+    <div id="pauseScreen">
+        <h2>Game Paused</h2>
+        <p>Press 'P' to Resume</p>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="http://localhost:8000/OneDrive/Desktop/Dino%20Game/retro-game.mp3">
+    </audio>
+    <audio id="gameOverSound">
+        <source src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const gameOverSound = document.getElementById('gameOverSound');
+        backgroundMusic.volume = 0.5;
+        gameOverSound.volume = 1.0;
+
+        const dinoImg = new Image();
+        dinoImg.src = './images/Angel.png';
+
+        const obstacleImgs = {
+            auto: new Image(),
+            cow: new Image()
+        };
+        obstacleImgs.auto.src = './images/auto1.png';
+        obstacleImgs.cow.src = './images/cow1.png';
+
+        let dino = {
+            x: 100,
+            y: canvas.height - 100,
+            width: 60,
+            height: 60,
+            velocityY: 0,
+            gravity: 0.6,
+            jumpForce: -15,
+            jumping: false
+        };
+
+        let obstacles = [];
+        const obstacleTypes = [
+            { type: 'auto', width: 85, height: 120 },
+            { type: 'cow', width: 60, height: 90 }
+        ];
+
+        let gameSpeed = 4;
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let gameOver = false;
+        let paused = false;
+
+        document.getElementById('highScore').textContent = highScore;
+
+        function jump() {
+            if (!dino.jumping && dino.y >= canvas.height - 120) {
+                dino.jumping = true;
+                dino.velocityY = dino.jumpForce;
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') jump();
+            if (e.code === 'KeyP') togglePause();
+        });
+
+        function togglePause() {
+            paused = !paused;
+            if (paused) {
+                document.getElementById('pauseScreen').style.display = 'block';
+                backgroundMusic.pause();
+            } else {
+                document.getElementById('pauseScreen').style.display = 'none';
+                backgroundMusic.play();
+                gameLoop();
+            }
+        }
+
+        let obstacleSpawnInterval = 1000;
+        let lastSpawnTime = 0;
+
+        function spawnObstacle() {
+            const now = Date.now();
+            if (now - lastSpawnTime > obstacleSpawnInterval) {
+                const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+                obstacles.push({
+                    x: canvas.width,
+                    y: canvas.height - type.height - 20,
+                    type: type.type,
+                    width: type.width,
+                    height: type.height
+                });
+                lastSpawnTime = now;
+                obstacleSpawnInterval = Math.random() * 1500 + 800;
+            }
+        }
+
+        function gameLoop() {
+            if (paused || gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            dino.y += dino.velocityY;
+            dino.velocityY += dino.gravity;
+
+            if (dino.y >= canvas.height - 120) {
+                dino.y = canvas.height - 120;
+                dino.jumping = false;
+                dino.velocityY = 0;
+            }
+
+            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+            spawnObstacle();
+
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= gameSpeed;
+                ctx.drawImage(obstacleImgs[obstacle.type], obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                if (
+                    dino.x < obstacle.x + obstacle.width &&
+                    dino.x + dino.width > obstacle.x &&
+                    dino.y < obstacle.y + obstacle.height &&
+                    dino.y + dino.height > obstacle.y
+                ) {
+                    gameOver = true;
+                    document.getElementById('gameOver').style.display = 'block';
+                    document.getElementById('finalScore').textContent = score;
+                    gameOverSound.play();
+                    backgroundMusic.pause();
+                }
+
+                if (obstacle.x < -obstacle.width) {
+                    obstacles.splice(index, 1);
+                    score++;
+                    document.getElementById('currentScore').textContent = score;
+                    gameSpeed += 0.02;
+                }
+            });
+            requestAnimationFrame(gameLoop);
+        }
+
+        function resetGame() {
+            obstacles = [];
+            gameOver = false;
+            score = 0;
+            gameSpeed = 4;
+            document.getElementById('gameOver').style.display = 'none';
+            backgroundMusic.play();
+            gameLoop();
+        }
+
+        backgroundMusic.play();
+        gameLoop();
+    </script>
+</body>
+</html>
