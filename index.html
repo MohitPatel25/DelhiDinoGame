@@ -15,7 +15,7 @@
             height: 100vh;
             display: block;
         }
-        #gameOver, #pauseScreen {
+        #gameOver, #pauseScreen, #cutieeMessage {
             display: none;
             position: fixed;
             top: 50%;
@@ -63,6 +63,9 @@
     <div id="pauseScreen">
         <h2>Game Paused</h2>
         <p>Press 'P' to Resume</p>
+    </div>
+    <div id="cutieeMessage">
+        <h2>Awe!! You are cutiee 😘❤️</h2>
     </div>
 
     <audio id="backgroundMusic" loop>
@@ -230,6 +233,14 @@
                     score++;
                     document.getElementById('currentScore').textContent = score;
                     gameSpeed += 0.02;
+
+                    // Show "Awe!! You are cutiee 😘❤️" message if score > 10
+                    if (score > 10) {
+                        document.getElementById('cutieeMessage').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('cutieeMessage').style.display = 'none';
+                        }, 2000); // Hide after 2 seconds
+                    }
                 }
             });
 
@@ -249,9 +260,9 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            dino.width = canvas.width * 0.1;
-            dino.height = canvas.width * 0.1;
-            dino.y = canvas.height - dino.height - 20;
+            dino.width = 60; // Fixed size for dino
+            dino.height = 60; // Fixed size for dino
+            dino.y = canvas.height - dino.height - 20; // Adjust Y position
         }
 
         window.addEventListener('resize', resizeCanvas);
