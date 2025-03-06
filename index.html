@@ -1,7 +1,8 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html>
 <head>
     <title>Delhi Dino Run</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             margin: 0;
@@ -12,6 +13,9 @@
         #gameCanvas {
             background: url('DelhiBG.jpeg') repeat-x;
             background-size: auto 100%;
+            width: 100%;
+            height: 100vh;
+            display: block;
         }
         #gameOver, #pauseScreen {
             display: none;
@@ -93,7 +97,7 @@
 
         let dino = {
             x: 100,
-            y: canvas.height - 100,
+            y: canvas.height - 120,
             width: 60,
             height: 60,
             velocityY: 0,
@@ -108,7 +112,7 @@
             { type: 'cow', width: 60, height: 90 }
         ];
 
-        let gameSpeed = 4;
+        let gameSpeed = 6;
         let score = 0;
         let highScore = localStorage.getItem('highScore') || 0;
         let gameOver = false;
@@ -128,6 +132,10 @@
             if (e.code === 'KeyP') togglePause();
         });
 
+        document.addEventListener('touchstart', () => {
+            jump();
+        });
+
         function togglePause() {
             paused = !paused;
             if (paused) {
@@ -140,7 +148,7 @@
             }
         }
 
-        let obstacleSpawnInterval = 1000;
+        let obstacleSpawnInterval = 1200;
         let lastSpawnTime = 0;
 
         function spawnObstacle() {
@@ -206,11 +214,22 @@
             obstacles = [];
             gameOver = false;
             score = 0;
-            gameSpeed = 4;
+            gameSpeed = 6;
             document.getElementById('gameOver').style.display = 'none';
             backgroundMusic.play();
             gameLoop();
         }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            dino.width = canvas.width * 0.1;
+            dino.height = canvas.width * 0.1;
+            dino.y = canvas.height - dino.height - 20;
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
         backgroundMusic.play();
         gameLoop();
