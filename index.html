@@ -129,7 +129,7 @@
             "You are a star!",
             "You know you are amazing!",
             "You are a super player!",
-            "Keep it up, champ!",
+            "Keep it up!",
             "You are unstoppable!"
         ];
 
@@ -196,8 +196,9 @@
             }
         }
 
-        function showMessage(message) {
-            document.getElementById('messageText').textContent = message;
+        function showMessage() {
+            const messageIndex = Math.floor(score / 50) % messages.length;
+            document.getElementById('messageText').textContent = messages[messageIndex];
             document.getElementById('cutieeMessage').style.display = 'block';
             setTimeout(() => {
                 document.getElementById('cutieeMessage').style.display = 'none';
@@ -251,10 +252,9 @@
                     document.getElementById('currentScore').textContent = score;
                     gameSpeed += 0.02;
 
-                    // Show message for every multiple of 50
-                    if (score % 50 === 0 && score !== 0) {
-                        const message = messages[Math.floor(Math.random() * messages.length)];
-                        showMessage(message);
+                    // Show message on multiples of 50
+                    if (score % 50 === 0) {
+                        showMessage();
                     }
                 }
             });
