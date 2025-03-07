@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Delhi Dino Run</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body {
             margin: 0;
@@ -65,7 +65,7 @@
         <p>Press 'P' to Resume</p>
     </div>
     <div id="cutieeMessage">
-        <h2>Awe!! You are cutiee 😘❤️</h2>
+        <h2 id="messageText"></h2>
     </div>
 
     <audio id="backgroundMusic" loop>
@@ -123,6 +123,15 @@
         let paused = false;
 
         let backgroundX = 0; // Tracks the background's horizontal position
+
+        const messages = [
+            "You are going good!",
+            "You are a star!",
+            "You know you are amazing!",
+            "You are a super player!",
+            "Keep it up, champ!",
+            "You are unstoppable!"
+        ];
 
         document.getElementById('highScore').textContent = highScore;
 
@@ -187,6 +196,14 @@
             }
         }
 
+        function showMessage(message) {
+            document.getElementById('messageText').textContent = message;
+            document.getElementById('cutieeMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('cutieeMessage').style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
+
         function gameLoop() {
             if (paused || gameOver) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -234,12 +251,10 @@
                     document.getElementById('currentScore').textContent = score;
                     gameSpeed += 0.02;
 
-                    // Show "Awe!! You are cutiee 😘❤️" message if score > 10
-                    if (score > 10) {
-                        document.getElementById('cutieeMessage').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('cutieeMessage').style.display = 'none';
-                        }, 2000); // Hide after 2 seconds
+                    // Show message for every multiple of 50
+                    if (score % 50 === 0 && score !== 0) {
+                        const message = messages[Math.floor(Math.random() * messages.length)];
+                        showMessage(message);
                     }
                 }
             });
