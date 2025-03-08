@@ -13,9 +13,9 @@
         #gameCanvas {
             width: 100%;
             height: 100vh;
-            display: block;
+            display: none; /* Hide canvas initially */
         }
-        #gameOver, #pauseScreen, #cutieeMessage {
+        #gameOver, #pauseScreen, #cutieeMessage, #characterSelection {
             display: none;
             position: fixed;
             top: 50%;
@@ -46,6 +46,16 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        .character-button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
@@ -67,6 +77,13 @@
     <div id="cutieeMessage">
         <h2 id="messageText"></h2>
     </div>
+    <div id="characterSelection">
+        <h2>Choose Your Character</h2>
+        <button class="character-button" onclick="selectCharacter('Angel')">Angel</button>
+        <button class="character-button" onclick="selectCharacter('Tipsy')">Tipsy (Dog)</button>
+        <button class="character-button" onclick="selectCharacter('Cycleboy')">Cycleboy</button>
+        <button class="character-button" onclick="selectCharacter('Bikerboy')">Bikerboy</button>
+    </div>
 
     <audio id="backgroundMusic" loop>
         <source src="retro-game.mp3">
@@ -86,8 +103,18 @@
         backgroundMusic.volume = 0.5;
         gameOverSound.volume = 1.0;
 
-        const dinoImg = new Image();
-        dinoImg.src = 'Angel.png';
+        // Character images
+        const characterImgs = {
+            Angel: new Image(),
+            Tipsy: new Image(),
+            Cycleboy: new Image(),
+            Bikerboy: new Image()
+        };
+        characterImgs.Angel.src = 'Angel.png';
+        characterImgs.Tipsy.src = 'Tipsy.png'; // Add Tipsy image
+        characterImgs.Cycleboy.src = 'CycleBoy.png'; // Add Cycleboy image
+        characterImgs.Bikerboy.src = 'BikerBoy.png'; // Add Bikerboy image
+        characterImgs.Dino.src = 'Dino1.png';
 
         const obstacleImgs = {
             auto: new Image(),
@@ -133,7 +160,23 @@
             "You are unstoppable!"
         ];
 
-        document.getElementById('highScore').textContent = highScore;
+        let selectedCharacter = 'Angel'; // Default character
+
+        // Show character selection screen initially
+        document.getElementById('characterSelection').style.display = 'block';
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            document.getElementById('characterSelection').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            startGame();
+        }
+
+        function startGame() {
+            dinoImg.src = characterImgs[selectedCharacter].src;
+            backgroundMusic.play();
+            gameLoop();
+        }
 
         function jump() {
             if (!dino.jumping && dino.y >= canvas.height - 120) {
@@ -222,8 +265,8 @@
                 dino.velocityY = 0;
             }
 
-            // Draw dino
-            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+            // Draw selected character
+            ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
 
             // Spawn and draw obstacles
             spawnObstacle();
@@ -268,8 +311,9 @@
             score = 0;
             gameSpeed = 6;
             document.getElementById('gameOver').style.display = 'none';
-            backgroundMusic.play();
-            gameLoop();
+            document.getElementById('characterSelection').style.display = 'block';
+            document.getElementById('gameCanvas').style.display = 'none';
+            backgroundMusic.pause();
         }
 
         function resizeCanvas() {
@@ -282,9 +326,6 @@
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-
-        backgroundMusic.play();
-        gameLoop();
     </script>
 </body>
 </html>
