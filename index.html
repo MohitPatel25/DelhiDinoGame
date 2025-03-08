@@ -64,6 +64,18 @@
             height: 50px;
             margin-right: 10px;
         }
+        #characterSelection {
+            max-height: 80vh; /* Limit height for scrollable container */
+            overflow-y: auto; /* Make it scrollable */
+        }
+        #characterSelection h2 {
+            margin-bottom: 20px;
+        }
+        #characterSelection .character-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
@@ -87,26 +99,28 @@
     </div>
     <div id="characterSelection">
         <h2>Choose Your Character</h2>
-        <button class="character-button" onclick="selectCharacter('Angel')">
-            <img src="Angel.png" alt="Angel">
-            Angel
-        </button>
-        <button class="character-button" onclick="selectCharacter('Tipsy')">
-            <img src="Tipsy.png" alt="Tipsy">
-            Tipsy
-        </button>
-        <button class="character-button" onclick="selectCharacter('Cycleboy')">
-            <img src="CycleBoy.png" alt="Cycleboy">
-            Cycleboy
-        </button>
-        <button class="character-button" onclick="selectCharacter('Bikerboy')">
-            <img src="BikerBoy.png" alt="Bikerboy">
-            Bikerboy
-        </button>
-        <button class="character-button" onclick="selectCharacter('Dino')">
-            <img src="Dino1.png" alt="Dino">
-            Dino
-        </button>
+        <div class="character-list">
+            <button class="character-button" onclick="selectCharacter('Angel')">
+                <img src="Angel.png" alt="Angel">
+                Angel
+            </button>
+            <button class="character-button" onclick="selectCharacter('Tipsy')">
+                <img src="Tipsy.png" alt="Tipsy">
+                Tipsy (Dog)
+            </button>
+            <button class="character-button" onclick="selectCharacter('Cycleboy')">
+                <img src="CycleBoy.png" alt="Cycleboy">
+                Cycleboy
+            </button>
+            <button class="character-button" onclick="selectCharacter('Bikerboy')">
+                <img src="BikerBoy.png" alt="Bikerboy">
+                Bikerboy
+            </button>
+            <button class="character-button" onclick="selectCharacter('Dino')">
+                <img src="Dino1.png" alt="Dino">
+                Dino
+            </button>
+        </div>
     </div>
 
     <audio id="backgroundMusic" loop>
