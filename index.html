@@ -170,7 +170,7 @@
 
         // Animated Cycleboy sprite
         const cycleboySprite = new Image();
-        cycleboySprite.src = 'CycleboySprite.png'; // Replace with your sprite sheet path
+        cycleboySprite.src = 'CycleboySprite.png'; // Ensure this path is correct
 
         const obstacleImgs = {
             auto: new Image(),
@@ -185,8 +185,8 @@
         let dino = {
             x: 100,
             y: canvas.height - 150, // Adjusted Y position for larger characters
-            width: 80, // Increased width
-            height: 80, // Increased height
+            width: 100, // Increased width
+            height: 100, // Increased height
             velocityY: 0,
             gravity: 0.6,
             jumpForce: -15,
@@ -346,6 +346,7 @@
                     dino.x, dino.y, // Destination x, y
                     dino.width, dino.height // Destination width, height
                 );
+                console.log("Drawing Cycleboy frame:", cycleboyFrame); // Debugging
             } else {
                 // Draw other characters
                 ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
@@ -402,8 +403,8 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            dino.width = 80; // Increased width
-            dino.height = 80; // Increased height
+            dino.width = 100; // Increased width
+            dino.height = 100; // Increased height
             dino.y = canvas.height - dino.height - 20; // Adjust Y position
         }
 
