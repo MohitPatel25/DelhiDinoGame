@@ -184,9 +184,9 @@
 
         let dino = {
             x: 100,
-            y: canvas.height - 120,
-            width: 60,
-            height: 60,
+            y: canvas.height - 150, // Adjusted Y position for larger characters
+            width: 80, // Increased width
+            height: 80, // Increased height
             velocityY: 0,
             gravity: 0.6,
             jumpForce: -15,
@@ -245,7 +245,7 @@
         }
 
         function jump() {
-            if (!dino.jumping && dino.y >= canvas.height - 120) {
+            if (!dino.jumping && dino.y >= canvas.height - 150) {
                 dino.jumping = true;
                 dino.velocityY = dino.jumpForce;
             }
@@ -325,8 +325,8 @@
             dino.y += dino.velocityY;
             dino.velocityY += dino.gravity;
 
-            if (dino.y >= canvas.height - 120) {
-                dino.y = canvas.height - 120;
+            if (dino.y >= canvas.height - 150) {
+                dino.y = canvas.height - 150;
                 dino.jumping = false;
                 dino.velocityY = 0;
             }
@@ -402,8 +402,8 @@
         function resizeCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
-            dino.width = 60; // Fixed size for dino
-            dino.height = 60; // Fixed size for dino
+            dino.width = 80; // Increased width
+            dino.height = 80; // Increased height
             dino.y = canvas.height - dino.height - 20; // Adjust Y position
         }
 
