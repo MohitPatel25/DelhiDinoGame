@@ -79,17 +79,6 @@
             align-items: center;
         }
         /* Background for character selection screen */
-        #characterSelection::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('DelhiBG.jpeg') no-repeat center center/cover;
-            z-index: -1; /* Place it behind the content */
-        }
-        /* Ensure the background covers the entire screen */
         body::before {
             content: '';
             position: fixed;
@@ -179,6 +168,10 @@
         characterImgs.Bikerboy.src = 'BikerBoy.png'; // Add Bikerboy image
         characterImgs.Dino.src = 'Dino1.png'; // Add Dino image
 
+        // Animated Cycleboy sprite
+        const cycleboySprite = new Image();
+        cycleboySprite.src = 'CycleboySprite.png'; // Replace with your sprite sheet path
+
         const obstacleImgs = {
             auto: new Image(),
             cow: new Image()
@@ -224,6 +217,13 @@
         ];
 
         let selectedCharacter = 'Angel'; // Default character
+
+        // Animation variables for Cycleboy
+        let cycleboyFrame = 0; // Current frame of the sprite
+        const cycleboyFrameWidth = 60; // Width of each frame in the sprite sheet
+        const cycleboyFrameHeight = 60; // Height of each frame in the sprite sheet
+        const cycleboyFrames = 4; // Total number of frames in the sprite sheet
+        let cycleboyFrameTimer = 0; // Timer for frame updates
 
         // Show character selection screen initially
         document.getElementById('characterSelection').style.display = 'block';
@@ -332,7 +332,24 @@
             }
 
             // Draw selected character
-            ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
+            if (selectedCharacter === 'Cycleboy') {
+                // Animate Cycleboy
+                cycleboyFrameTimer++;
+                if (cycleboyFrameTimer >= 10) { // Change frame every 10 frames
+                    cycleboyFrame = (cycleboyFrame + 1) % cycleboyFrames;
+                    cycleboyFrameTimer = 0;
+                }
+                ctx.drawImage(
+                    cycleboySprite,
+                    cycleboyFrame * cycleboyFrameWidth, 0, // Source x, y
+                    cycleboyFrameWidth, cycleboyFrameHeight, // Source width, height
+                    dino.x, dino.y, // Destination x, y
+                    dino.width, dino.height // Destination width, height
+                );
+            } else {
+                // Draw other characters
+                ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
+            }
 
             // Spawn and draw obstacles
             spawnObstacle();
