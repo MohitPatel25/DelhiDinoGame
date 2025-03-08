@@ -114,7 +114,6 @@
         characterImgs.Tipsy.src = 'Tipsy.png'; // Add Tipsy image
         characterImgs.Cycleboy.src = 'CycleBoy.png'; // Add Cycleboy image
         characterImgs.Bikerboy.src = 'BikerBoy.png'; // Add Bikerboy image
-        characterImgs.Dino.src = 'Dino1.png';
 
         const obstacleImgs = {
             auto: new Image(),
@@ -173,9 +172,12 @@
         }
 
         function startGame() {
-            dinoImg.src = characterImgs[selectedCharacter].src;
-            backgroundMusic.play();
-            gameLoop();
+            // Ensure the background image is loaded before starting the game
+            backgroundImg.onload = () => {
+                backgroundMusic.play();
+                gameLoop();
+            };
+            backgroundImg.src = 'DelhiBG.jpeg'; // Reload the background image
         }
 
         function jump() {
