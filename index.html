@@ -9,19 +9,20 @@
             overflow: hidden;
             touch-action: manipulation;
             font-family: Arial, sans-serif;
+            background: #87CEEB; /* Sky blue fallback */
         }
         #gameCanvas {
             width: 100%;
             height: 100vh;
-            display: block;
+            display: none; /* Hide canvas initially */
         }
-        #gameOver, #pauseScreen, #cutieeMessage {
+        #gameOver, #pauseScreen, #cutieeMessage, #characterSelection {
             display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
             padding: 25px;
             text-align: center;
             border-radius: 15px;
@@ -46,6 +47,59 @@
             border-radius: 5px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
+        .character-button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .character-button img {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+        #characterSelection {
+            max-height: 80vh; /* Limit height for scrollable container */
+            overflow-y: auto; /* Make it scrollable */
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+        }
+        #characterSelection h2 {
+            margin-bottom: 20px;
+        }
+        #characterSelection .character-list {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        /* Background for character selection screen */
+        #characterSelection::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('DelhiBG.jpeg') no-repeat center center/cover;
+            z-index: -1; /* Place it behind the content */
+        }
+        /* Ensure the background covers the entire screen */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('DelhiBG.jpeg') no-repeat center center/cover;
+            z-index: -1; /* Place it behind the content */
+        }
     </style>
 </head>
 <body>
@@ -67,6 +121,31 @@
     <div id="cutieeMessage">
         <h2 id="messageText"></h2>
     </div>
+    <div id="characterSelection">
+        <h2>Choose Your Character</h2>
+        <div class="character-list">
+            <button class="character-button" onclick="selectCharacter('Angel')">
+                <img src="Angel.png" alt="Angel">
+                Angel
+            </button>
+            <button class="character-button" onclick="selectCharacter('Tipsy')">
+                <img src="Tipsy.png" alt="Tipsy">
+                Tipsy (Dog)
+            </button>
+            <button class="character-button" onclick="selectCharacter('Cycleboy')">
+                <img src="CycleBoy.png" alt="Cycleboy">
+                Cycleboy
+            </button>
+            <button class="character-button" onclick="selectCharacter('Bikerboy')">
+                <img src="BikerBoy.png" alt="Bikerboy">
+                Bikerboy
+            </button>
+            <button class="character-button" onclick="selectCharacter('Dino')">
+                <img src="Dino1.png" alt="Dino">
+                Dino
+            </button>
+        </div>
+    </div>
 
     <audio id="backgroundMusic" loop>
         <source src="retro-game.mp3">
@@ -86,8 +165,19 @@
         backgroundMusic.volume = 0.5;
         gameOverSound.volume = 1.0;
 
-        const dinoImg = new Image();
-        dinoImg.src = 'Angel.png';
+        // Character images
+        const characterImgs = {
+            Angel: new Image(),
+            Tipsy: new Image(),
+            Cycleboy: new Image(),
+            Bikerboy: new Image(),
+            Dino: new Image()
+        };
+        characterImgs.Angel.src = 'Angel.png';
+        characterImgs.Tipsy.src = 'Tipsy.png'; // Add Tipsy image
+        characterImgs.Cycleboy.src = 'CycleBoy.png'; // Add Cycleboy image
+        characterImgs.Bikerboy.src = 'BikerBoy.png'; // Add Bikerboy image
+        characterImgs.Dino.src = 'Dino1.png'; // Add Dino image
 
         const obstacleImgs = {
             auto: new Image(),
@@ -133,7 +223,26 @@
             "You are unstoppable!"
         ];
 
-        document.getElementById('highScore').textContent = highScore;
+        let selectedCharacter = 'Angel'; // Default character
+
+        // Show character selection screen initially
+        document.getElementById('characterSelection').style.display = 'block';
+
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            document.getElementById('characterSelection').style.display = 'none';
+            document.getElementById('gameCanvas').style.display = 'block';
+            startGame();
+        }
+
+        function startGame() {
+            // Ensure the background image is loaded before starting the game
+            backgroundImg.onload = () => {
+                backgroundMusic.play();
+                gameLoop();
+            };
+            backgroundImg.src = 'DelhiBG.jpeg'; // Reload the background image
+        }
 
         function jump() {
             if (!dino.jumping && dino.y >= canvas.height - 120) {
@@ -222,8 +331,8 @@
                 dino.velocityY = 0;
             }
 
-            // Draw dino
-            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+            // Draw selected character
+            ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
 
             // Spawn and draw obstacles
             spawnObstacle();
@@ -268,8 +377,9 @@
             score = 0;
             gameSpeed = 6;
             document.getElementById('gameOver').style.display = 'none';
-            backgroundMusic.play();
-            gameLoop();
+            document.getElementById('characterSelection').style.display = 'block';
+            document.getElementById('gameCanvas').style.display = 'none';
+            backgroundMusic.pause();
         }
 
         function resizeCanvas() {
@@ -282,9 +392,6 @@
 
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
-
-        backgroundMusic.play();
-        gameLoop();
     </script>
 </body>
 </html>
