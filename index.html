@@ -9,43 +9,26 @@
             overflow: hidden;
             touch-action: manipulation;
             font-family: Arial, sans-serif;
-            background: #87CEEB; /* Sky blue fallback */
+            background: url('DelhiBG.jpeg') no-repeat center center/cover;
         }
         #gameCanvas {
             width: 100%;
             height: 100vh;
-            display: none; /* Hide canvas initially */
-        }
-        #gameOver, #pauseScreen, #cutieeMessage, #characterSelection {
             display: none;
+        }
+        #characterSelection {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+            background: rgba(255, 255, 255, 0.95);
             padding: 25px;
-            text-align: center;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0,0,0,0.3);
-        }
-        button {
-            padding: 12px 24px;
-            font-size: 18px;
-            margin-top: 15px;
-            cursor: pointer;
-            background: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-        }
-        #scoreBoard {
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px 20px;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
         .character-button {
             margin: 10px;
@@ -65,351 +48,75 @@
             height: 50px;
             margin-right: 10px;
         }
-        #characterSelection {
-            max-height: 80vh; /* Limit height for scrollable container */
-            overflow-y: auto; /* Make it scrollable */
-            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
-        }
-        #characterSelection h2 {
-            margin-bottom: 20px;
-        }
-        #characterSelection .character-list {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        /* Background for character selection screen */
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: url('DelhiBG.jpeg') no-repeat center center/cover;
-            z-index: -1; /* Place it behind the content */
-        }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <div id="scoreBoard">
-        Score: <span id="currentScore">0</span><br>
-        High Score: <span id="highScore">0</span>
-    </div>
-    <div id="gameOver">
-        <h2>Game Over!</h2>
-        <p>Score: <span id="finalScore">0</span></p>
-        <p>High Score: <span id="finalHighScore">0</span></p>
-        <button onclick="resetGame()">Play Again</button>
-    </div>
-    <div id="pauseScreen">
-        <h2>Game Paused</h2>
-        <p>Press 'P' to Resume</p>
-    </div>
-    <div id="cutieeMessage">
-        <h2 id="messageText"></h2>
-    </div>
     <div id="characterSelection">
         <h2>Choose Your Character</h2>
-        <div class="character-list">
-            <button class="character-button" onclick="selectCharacter('Angel')">
-                <img src="Angel.png" alt="Angel">
-                Angel
-            </button>
-            <button class="character-button" onclick="selectCharacter('Tipsy')">
-                <img src="Tipsy.png" alt="Tipsy">
-                Tipsy (Dog)
-            </button>
-            <button class="character-button" onclick="selectCharacter('Cycleboy')">
-                <img src="CycleBoy.png" alt="Cycleboy">
-                Cycleboy
-            </button>
-            <button class="character-button" onclick="selectCharacter('Bikerboy')">
-                <img src="BikerBoy.png" alt="Bikerboy">
-                Bikerboy
-            </button>
-            <button class="character-button" onclick="selectCharacter('Dino')">
-                <img src="Dino1.png" alt="Dino">
-                Dino
-            </button>
-        </div>
+        <button class="character-button" onclick="selectCharacter('Cycleboy')">
+            <img src="CycleBoy.png" alt="Cycleboy"> Cycleboy
+        </button>
     </div>
-
-    <audio id="backgroundMusic" loop>
-        <source src="retro-game.mp3">
-    </audio>
-    <audio id="gameOverSound">
-        <source src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3" type="audio/mpeg">
-    </audio>
-
+    
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-
-        const backgroundMusic = document.getElementById('backgroundMusic');
-        const gameOverSound = document.getElementById('gameOverSound');
-        backgroundMusic.volume = 0.5;
-        gameOverSound.volume = 1.0;
-
-        // Character images
-        const characterImgs = {
-            Angel: new Image(),
-            Tipsy: new Image(),
-            Cycleboy: new Image(),
-            Bikerboy: new Image(),
-            Dino: new Image()
-        };
-        characterImgs.Angel.src = 'Angel.png';
-        characterImgs.Tipsy.src = 'Tipsy.png'; // Add Tipsy image
-        characterImgs.Cycleboy.src = 'CycleBoy.png'; // Add Cycleboy image
-        characterImgs.Bikerboy.src = 'BikerBoy.png'; // Add Bikerboy image
-        characterImgs.Dino.src = 'Dino1.png'; // Add Dino image
-
-        // Animated Cycleboy sprite
+        
+        let selectedCharacter = 'Cycleboy';
         const cycleboySprite = new Image();
-        cycleboySprite.src = 'CycleboySprite.png'; // Ensure this path is correct
-
-        const obstacleImgs = {
-            auto: new Image(),
-            cow: new Image()
-        };
-        obstacleImgs.auto.src = 'auto1.png';
-        obstacleImgs.cow.src = 'cow1.png';
-
-        const backgroundImg = new Image();
-        backgroundImg.src = 'DelhiBG.jpeg';
-
+        cycleboySprite.src = 'CycleboySprite.png';
+        
+        const cycleboyFrameWidth = 64;
+        const cycleboyFrameHeight = 64;
+        const cycleboyFrames = 4;
+        let cycleboyFrame = 0;
+        let cycleboyFrameTimer = 0;
+        
         let dino = {
             x: 100,
-            y: canvas.height - 150, // Adjusted Y position for larger characters
-            width: 100, // Increased width
-            height: 100, // Increased height
+            y: canvas.height - 120,
+            width: 80,
+            height: 80,
             velocityY: 0,
             gravity: 0.6,
             jumpForce: -15,
             jumping: false
         };
-
-        let obstacles = [];
-        const obstacleTypes = [
-            { type: 'auto', width: 85, height: 120 },
-            { type: 'cow', width: 60, height: 90 }
-        ];
-
-        let gameSpeed = 6;
-        let score = 0;
-        let highScore = localStorage.getItem('highScore') || 0;
-        let gameOver = false;
-        let paused = false;
-
-        let backgroundX = 0; // Tracks the background's horizontal position
-
-        const messages = [
-            "You are going good!",
-            "You are a star!",
-            "You know you are amazing!",
-            "You are a super player!",
-            "Keep it up!",
-            "You are unstoppable!"
-        ];
-
-        let selectedCharacter = 'Angel'; // Default character
-
-        // Animation variables for Cycleboy
-        let cycleboyFrame = 0; // Current frame of the sprite
-        const cycleboyFrameWidth = 60; // Width of each frame in the sprite sheet
-        const cycleboyFrameHeight = 60; // Height of each frame in the sprite sheet
-        const cycleboyFrames = 4; // Total number of frames in the sprite sheet
-        let cycleboyFrameTimer = 0; // Timer for frame updates
-
-        // Show character selection screen initially
-        document.getElementById('characterSelection').style.display = 'block';
-
+        
         function selectCharacter(character) {
             selectedCharacter = character;
             document.getElementById('characterSelection').style.display = 'none';
             document.getElementById('gameCanvas').style.display = 'block';
             startGame();
         }
-
+        
         function startGame() {
-            // Ensure the background image is loaded before starting the game
-            backgroundImg.onload = () => {
-                backgroundMusic.play();
-                gameLoop();
+            cycleboySprite.onload = () => {
+                requestAnimationFrame(gameLoop);
             };
-            backgroundImg.src = 'DelhiBG.jpeg'; // Reload the background image
         }
-
-        function jump() {
-            if (!dino.jumping && dino.y >= canvas.height - 150) {
-                dino.jumping = true;
-                dino.velocityY = dino.jumpForce;
-            }
-        }
-
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') jump();
-            if (e.code === 'KeyP') togglePause();
-        });
-
-        document.addEventListener('touchstart', () => {
-            jump();
-        });
-
-        function togglePause() {
-            paused = !paused;
-            if (paused) {
-                document.getElementById('pauseScreen').style.display = 'block';
-                backgroundMusic.pause();
-            } else {
-                document.getElementById('pauseScreen').style.display = 'none';
-                backgroundMusic.play();
-                gameLoop();
-            }
-        }
-
-        let obstacleSpawnInterval = 1200;
-        let lastSpawnTime = 0;
-
-        function spawnObstacle() {
-            const now = Date.now();
-            if (now - lastSpawnTime > obstacleSpawnInterval) {
-                const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
-                obstacles.push({
-                    x: canvas.width,
-                    y: canvas.height - type.height - 20,
-                    type: type.type,
-                    width: type.width,
-                    height: type.height
-                });
-                lastSpawnTime = now;
-                obstacleSpawnInterval = Math.random() * 1500 + 800;
-            }
-        }
-
-        function drawBackground() {
-            // Draw the background image twice for seamless scrolling
-            ctx.drawImage(backgroundImg, backgroundX, 0, canvas.width, canvas.height);
-            ctx.drawImage(backgroundImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
-
-            // Move the background
-            backgroundX -= 1; // Adjust speed here (lower value = slower)
-
-            // Reset background position when it scrolls completely
-            if (backgroundX <= -canvas.width) {
-                backgroundX = 0;
-            }
-        }
-
-        function showMessage() {
-            const messageIndex = Math.floor(score / 50) % messages.length;
-            document.getElementById('messageText').textContent = messages[messageIndex];
-            document.getElementById('cutieeMessage').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('cutieeMessage').style.display = 'none';
-            }, 3000); // Hide after 3 seconds
-        }
-
+        
         function gameLoop() {
-            if (paused || gameOver) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Draw the moving background
-            drawBackground();
-
-            // Update dino position
-            dino.y += dino.velocityY;
-            dino.velocityY += dino.gravity;
-
-            if (dino.y >= canvas.height - 150) {
-                dino.y = canvas.height - 150;
-                dino.jumping = false;
-                dino.velocityY = 0;
+            
+            cycleboyFrameTimer++;
+            if (cycleboyFrameTimer >= 10) {
+                cycleboyFrame = (cycleboyFrame + 1) % cycleboyFrames;
+                cycleboyFrameTimer = 0;
             }
-
-            // Draw selected character
-            if (selectedCharacter === 'Cycleboy') {
-                // Animate Cycleboy
-                cycleboyFrameTimer++;
-                if (cycleboyFrameTimer >= 10) { // Change frame every 10 frames
-                    cycleboyFrame = (cycleboyFrame + 1) % cycleboyFrames;
-                    cycleboyFrameTimer = 0;
-                }
-                ctx.drawImage(
-                    cycleboySprite,
-                    cycleboyFrame * cycleboyFrameWidth, 0, // Source x, y
-                    cycleboyFrameWidth, cycleboyFrameHeight, // Source width, height
-                    dino.x, dino.y, // Destination x, y
-                    dino.width, dino.height // Destination width, height
-                );
-                console.log("Drawing Cycleboy frame:", cycleboyFrame); // Debugging
-            } else {
-                // Draw other characters
-                ctx.drawImage(characterImgs[selectedCharacter], dino.x, dino.y, dino.width, dino.height);
-            }
-
-            // Spawn and draw obstacles
-            spawnObstacle();
-            obstacles.forEach((obstacle, index) => {
-                obstacle.x -= gameSpeed;
-                ctx.drawImage(obstacleImgs[obstacle.type], obstacle.x, obstacle.y, obstacle.width, obstacle.height);
-
-                // Check for collision
-                if (
-                    dino.x < obstacle.x + obstacle.width &&
-                    dino.x + dino.width > obstacle.x &&
-                    dino.y < obstacle.y + obstacle.height &&
-                    dino.y + dino.height > obstacle.y
-                ) {
-                    gameOver = true;
-                    document.getElementById('gameOver').style.display = 'block';
-                    document.getElementById('finalScore').textContent = score;
-                    gameOverSound.play();
-                    backgroundMusic.pause();
-                }
-
-                // Remove off-screen obstacles
-                if (obstacle.x < -obstacle.width) {
-                    obstacles.splice(index, 1);
-                    score++;
-                    document.getElementById('currentScore').textContent = score;
-                    gameSpeed += 0.02;
-
-                    // Show message on multiples of 50
-                    if (score % 50 === 0) {
-                        showMessage();
-                    }
-                }
-            });
-
+            ctx.drawImage(
+                cycleboySprite,
+                cycleboyFrame * cycleboyFrameWidth, 0,
+                cycleboyFrameWidth, cycleboyFrameHeight,
+                dino.x, dino.y,
+                dino.width, dino.height
+            );
             requestAnimationFrame(gameLoop);
         }
-
-        function resetGame() {
-            obstacles = [];
-            gameOver = false;
-            score = 0;
-            gameSpeed = 6;
-            document.getElementById('gameOver').style.display = 'none';
-            document.getElementById('characterSelection').style.display = 'block';
-            document.getElementById('gameCanvas').style.display = 'none';
-            backgroundMusic.pause();
-        }
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            dino.width = 100; // Increased width
-            dino.height = 100; // Increased height
-            dino.y = canvas.height - dino.height - 20; // Adjust Y position
-        }
-
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
+        
     </script>
 </body>
 </html>
