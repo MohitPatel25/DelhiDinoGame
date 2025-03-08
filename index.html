@@ -9,6 +9,7 @@
             overflow: hidden;
             touch-action: manipulation;
             font-family: Arial, sans-serif;
+            background: #87CEEB; /* Sky blue fallback */
         }
         #gameCanvas {
             width: 100%;
@@ -21,7 +22,7 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.95);
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
             padding: 25px;
             text-align: center;
             border-radius: 15px;
@@ -67,6 +68,7 @@
         #characterSelection {
             max-height: 80vh; /* Limit height for scrollable container */
             overflow-y: auto; /* Make it scrollable */
+            background: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
         }
         #characterSelection h2 {
             margin-bottom: 20px;
@@ -75,6 +77,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+        }
+        /* Background for character selection screen */
+        #characterSelection::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('DelhiBG.jpeg') no-repeat center center/cover;
+            z-index: -1; /* Place it behind the content */
         }
     </style>
 </head>
