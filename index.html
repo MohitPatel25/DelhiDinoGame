@@ -9,114 +9,282 @@
             overflow: hidden;
             touch-action: manipulation;
             font-family: Arial, sans-serif;
-            background: url('DelhiBG.jpeg') no-repeat center center/cover;
         }
         #gameCanvas {
             width: 100%;
             height: 100vh;
-            display: none;
+            display: block;
         }
-        #characterSelection {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        #gameOver, #pauseScreen, #cutieeMessage {
+            display: none;
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             background: rgba(255, 255, 255, 0.95);
             padding: 25px;
+            text-align: center;
             border-radius: 15px;
             box-shadow: 0 0 15px rgba(0,0,0,0.3);
         }
-        .character-button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
+        button {
+            padding: 12px 24px;
+            font-size: 18px;
+            margin-top: 15px;
             cursor: pointer;
             background: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
-        .character-button img {
-            width: 50px;
-            height: 50px;
-            margin-right: 10px;
+        #scoreBoard {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 10px 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
     <canvas id="gameCanvas"></canvas>
-    <div id="characterSelection">
-        <h2>Choose Your Character</h2>
-        <button class="character-button" onclick="selectCharacter('Cycleboy')">
-            <img src="CycleBoy.png" alt="Cycleboy"> Cycleboy
-        </button>
+    <div id="scoreBoard">
+        Score: <span id="currentScore">0</span><br>
+        High Score: <span id="highScore">0</span>
     </div>
-    
+    <div id="gameOver">
+        <h2>Game Over!</h2>
+        <p>Score: <span id="finalScore">0</span></p>
+        <p>High Score: <span id="finalHighScore">0</span></p>
+        <button onclick="resetGame()">Play Again</button>
+    </div>
+    <div id="pauseScreen">
+        <h2>Game Paused</h2>
+        <p>Press 'P' to Resume</p>
+    </div>
+    <div id="cutieeMessage">
+        <h2 id="messageText"></h2>
+    </div>
+
+    <audio id="backgroundMusic" loop>
+        <source src="retro-game.mp3">
+    </audio>
+    <audio id="gameOverSound">
+        <source src="https://www.soundjay.com/misc/sounds/fail-trombone-01.mp3" type="audio/mpeg">
+    </audio>
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        
-        let selectedCharacter = 'Cycleboy';
-        const cycleboySprite = new Image();
-        cycleboySprite.src = 'CycleboySprite.png';
-        
-        const cycleboyFrameWidth = 64;
-        const cycleboyFrameHeight = 64;
-        const cycleboyFrames = 4;
-        let cycleboyFrame = 0;
-        let cycleboyFrameTimer = 0;
-        
+
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const gameOverSound = document.getElementById('gameOverSound');
+        backgroundMusic.volume = 0.5;
+        gameOverSound.volume = 1.0;
+
+        const dinoImg = new Image();
+        dinoImg.src = 'Angel.png';
+
+        const obstacleImgs = {
+            auto: new Image(),
+            cow: new Image()
+        };
+        obstacleImgs.auto.src = 'auto1.png';
+        obstacleImgs.cow.src = 'cow1.png';
+
+        const backgroundImg = new Image();
+        backgroundImg.src = 'DelhiBG.jpeg';
+
         let dino = {
             x: 100,
             y: canvas.height - 120,
-            width: 80,
-            height: 80,
+            width: 60,
+            height: 60,
             velocityY: 0,
             gravity: 0.6,
             jumpForce: -15,
             jumping: false
         };
-        
-        function selectCharacter(character) {
-            selectedCharacter = character;
-            document.getElementById('characterSelection').style.display = 'none';
-            document.getElementById('gameCanvas').style.display = 'block';
-            startGame();
-        }
-        
-        function startGame() {
-            cycleboySprite.onload = () => {
-                requestAnimationFrame(gameLoop);
-            };
-        }
-        
-        function gameLoop() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            cycleboyFrameTimer++;
-            if (cycleboyFrameTimer >= 10) {
-                cycleboyFrame = (cycleboyFrame + 1) % cycleboyFrames;
-                cycleboyFrameTimer = 0;
+
+        let obstacles = [];
+        const obstacleTypes = [
+            { type: 'auto', width: 85, height: 120 },
+            { type: 'cow', width: 60, height: 90 }
+        ];
+
+        let gameSpeed = 6;
+        let score = 0;
+        let highScore = localStorage.getItem('highScore') || 0;
+        let gameOver = false;
+        let paused = false;
+
+        let backgroundX = 0; // Tracks the background's horizontal position
+
+        const messages = [
+            "You are going good!",
+            "You are a star!",
+            "You know you are amazing!",
+            "You are a super player!",
+            "Keep it up!",
+            "You are unstoppable!"
+        ];
+
+        document.getElementById('highScore').textContent = highScore;
+
+        function jump() {
+            if (!dino.jumping && dino.y >= canvas.height - 120) {
+                dino.jumping = true;
+                dino.velocityY = dino.jumpForce;
             }
-            ctx.drawImage(
-                cycleboySprite,
-                cycleboyFrame * cycleboyFrameWidth, 0,
-                cycleboyFrameWidth, cycleboyFrameHeight,
-                dino.x, dino.y,
-                dino.width, dino.height
-            );
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space') jump();
+            if (e.code === 'KeyP') togglePause();
+        });
+
+        document.addEventListener('touchstart', () => {
+            jump();
+        });
+
+        function togglePause() {
+            paused = !paused;
+            if (paused) {
+                document.getElementById('pauseScreen').style.display = 'block';
+                backgroundMusic.pause();
+            } else {
+                document.getElementById('pauseScreen').style.display = 'none';
+                backgroundMusic.play();
+                gameLoop();
+            }
+        }
+
+        let obstacleSpawnInterval = 1200;
+        let lastSpawnTime = 0;
+
+        function spawnObstacle() {
+            const now = Date.now();
+            if (now - lastSpawnTime > obstacleSpawnInterval) {
+                const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
+                obstacles.push({
+                    x: canvas.width,
+                    y: canvas.height - type.height - 20,
+                    type: type.type,
+                    width: type.width,
+                    height: type.height
+                });
+                lastSpawnTime = now;
+                obstacleSpawnInterval = Math.random() * 1500 + 800;
+            }
+        }
+
+        function drawBackground() {
+            // Draw the background image twice for seamless scrolling
+            ctx.drawImage(backgroundImg, backgroundX, 0, canvas.width, canvas.height);
+            ctx.drawImage(backgroundImg, backgroundX + canvas.width, 0, canvas.width, canvas.height);
+
+            // Move the background
+            backgroundX -= 1; // Adjust speed here (lower value = slower)
+
+            // Reset background position when it scrolls completely
+            if (backgroundX <= -canvas.width) {
+                backgroundX = 0;
+            }
+        }
+
+        function showMessage() {
+            const messageIndex = Math.floor(score / 50) % messages.length;
+            document.getElementById('messageText').textContent = messages[messageIndex];
+            document.getElementById('cutieeMessage').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('cutieeMessage').style.display = 'none';
+            }, 3000); // Hide after 3 seconds
+        }
+
+        function gameLoop() {
+            if (paused || gameOver) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw the moving background
+            drawBackground();
+
+            // Update dino position
+            dino.y += dino.velocityY;
+            dino.velocityY += dino.gravity;
+
+            if (dino.y >= canvas.height - 120) {
+                dino.y = canvas.height - 120;
+                dino.jumping = false;
+                dino.velocityY = 0;
+            }
+
+            // Draw dino
+            ctx.drawImage(dinoImg, dino.x, dino.y, dino.width, dino.height);
+
+            // Spawn and draw obstacles
+            spawnObstacle();
+            obstacles.forEach((obstacle, index) => {
+                obstacle.x -= gameSpeed;
+                ctx.drawImage(obstacleImgs[obstacle.type], obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+
+                // Check for collision
+                if (
+                    dino.x < obstacle.x + obstacle.width &&
+                    dino.x + dino.width > obstacle.x &&
+                    dino.y < obstacle.y + obstacle.height &&
+                    dino.y + dino.height > obstacle.y
+                ) {
+                    gameOver = true;
+                    document.getElementById('gameOver').style.display = 'block';
+                    document.getElementById('finalScore').textContent = score;
+                    gameOverSound.play();
+                    backgroundMusic.pause();
+                }
+
+                // Remove off-screen obstacles
+                if (obstacle.x < -obstacle.width) {
+                    obstacles.splice(index, 1);
+                    score++;
+                    document.getElementById('currentScore').textContent = score;
+                    gameSpeed += 0.02;
+
+                    // Show message on multiples of 50
+                    if (score % 50 === 0) {
+                        showMessage();
+                    }
+                }
+            });
+
             requestAnimationFrame(gameLoop);
         }
-        
+
+        function resetGame() {
+            obstacles = [];
+            gameOver = false;
+            score = 0;
+            gameSpeed = 6;
+            document.getElementById('gameOver').style.display = 'none';
+            backgroundMusic.play();
+            gameLoop();
+        }
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            dino.width = 60; // Fixed size for dino
+            dino.height = 60; // Fixed size for dino
+            dino.y = canvas.height - dino.height - 20; // Adjust Y position
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        backgroundMusic.play();
+        gameLoop();
     </script>
 </body>
 </html>
